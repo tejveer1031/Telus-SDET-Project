@@ -23,7 +23,7 @@ BDD test automation framework implementing Page Object Model (POM) with Java, Se
 ## ⚙️ Setup
 1. Clone repository:
    ```bash
-   git clone https://github.com/<your-username>/telus-sdet-project.git
+   git clone https://github.com/tejveer1031/telus-sdet-project.git
    ```
 2. Install dependencies:
    ```bash
