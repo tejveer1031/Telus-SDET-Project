@@ -28,13 +28,13 @@ public class ScrollerHandler {
                     String subtitleText = subtitleElement.getText().trim();
                     subtitleText = Normalizer.normalize(subtitleText, Normalizer.Form.NFKC);
 
-                    System.out.print(subtitleText);
+
 
                     if (subtitleText.equalsIgnoreCase(subtitle)) {
                         return item;
                     }
 
-                    if(subtitleText.contains("E")){
+                    if(subtitleText.contains(subtitle)){
                         return item;
                     }
 

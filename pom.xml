@@ -13,8 +13,9 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <selenium.version>4.14.1</selenium.version>
+        <selenium.version>4.31.0</selenium.version>
         <cucumber.version>7.15.0</cucumber.version>
+        <allure.version>2.24.0</allure.version>
         <testng.version>7.8.0</testng.version>
     </properties>
 
@@ -43,6 +44,11 @@
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>${testng.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-cucumber7-jvm</artifactId>
+            <version>${allure.version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
