@@ -9,21 +9,27 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 
 public class DriverManager {
     private static ThreadLocal<WebDriver> driver = new ThreadLocal<>();
+    private static ThreadLocal<String> browserName = new ThreadLocal<>();
+
+
+    public static void setBrowser(String browser) {
+        browserName.set(browser);
+    }
 
     public static WebDriver getDriver() {
         if (driver.get() == null) {
-            String browser = ConfigReader.getProperty("browser");
-            switch(browser.toLowerCase()) {
+            String browser = browserName.get().toLowerCase();
+            switch(browser) {
                 case "chrome":
-                    ChromeOptions chromeOptions = new ChromeOptions();
-                    chromeOptions.addArguments("--start-maximized");
-                    driver.set(new ChromeDriver(chromeOptions));
+//                    ChromeOptions chromeOptions = new ChromeOptions();
+//                    chromeOptions.addArguments("--start-maximized");
+//                    driver.set(new ChromeDriver(chromeOptions));
+                    driver.set(new ChromeDriver());
                     break;
                 case "firefox":
-                    FirefoxOptions firefoxOptions = new FirefoxOptions();
-                    firefoxOptions.addArguments("--width=1920");
-                    firefoxOptions.addArguments("--height=1080");
-                    driver.set(new FirefoxDriver(firefoxOptions));
+//                    FirefoxOptions firefoxOptions = new FirefoxOptions();
+//                    driver.set(new FirefoxDriver(firefoxOptions));
+                    driver.set(new FirefoxDriver());
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported browser: " + browser);

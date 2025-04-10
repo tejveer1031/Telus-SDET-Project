@@ -35,6 +35,7 @@ public class SelectanimatedPage {
     @FindBy(xpath = "//div[@data='filter-list-items']//label[contains(@class, 'dropdown-items-container')]")
     private List<WebElement> filterItems;
 
+
     @FindBy(xpath = "//div[contains(@class, 'filter-button') and contains(@class, 'filter-apply-button') and contains(@class, 'filter-button-enabled') and text()='Apply']")
     private WebElement applyButton;
 
@@ -73,11 +74,12 @@ public class SelectanimatedPage {
                 wait.until(ExpectedConditions.visibilityOf(element));
                 JavascriptExecutor js = (JavascriptExecutor) driver;
                 js.executeScript("arguments[0].scrollIntoView(true);", element);
+//                js.executeScript("window.scrollBy(0,300)");
                 return;
-            } catch (StaleElementReferenceException e) {
+            } catch (StaleElementReferenceException e ) {
                 movies = driver.findElement(xpath);
-                scrollToMovies();
                 attempts++;
+                System.out.println("Stale element. Retry attempt: " + attempts);
             }
         }
         throw new RuntimeException("Failed to scroll to movies after " + attempts + " attempts");
@@ -92,6 +94,7 @@ public class SelectanimatedPage {
 
     public boolean verifyUserMustBeOnMovies() {
         String expectedUrl = "https://telustvplus.com/#/viewall/TRAY/SEARCH/VOD?filter_contentSubtype=movie&title=Movies&orderBy=title&sortOrder=asc";
+        wait.until(ExpectedConditions.urlToBe(expectedUrl));
         String actualUrl = driver.getCurrentUrl();
         return expectedUrl.equals(actualUrl);
     }
@@ -116,7 +119,7 @@ public class SelectanimatedPage {
         wait.until(ExpectedConditions.elementToBeClickable(applyButton)).click();
     }
 
-        public  void findRatedE() throws InterruptedException {
+        public  void findRatedE(){
 
             ScrollerHandler scrollerHandler = new ScrollerHandler(driver);
             WebElement returnElemt = scrollerHandler.findElementWithSubtitle("E");
@@ -125,7 +128,7 @@ public class SelectanimatedPage {
                 try {
                     returnElemt.click();
                 } catch (NoSuchElementException e) {
-                    System.out.println("Element found but failed ");
+                    System.out.println("Element found but failed to click");
                 }
             } else {
                 System.out.println("No matching element found for subtitle: ");
