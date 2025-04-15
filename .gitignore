@@ -26,5 +26,6 @@ build/
 .DS_Store
 
 #Allure
-.allure-report
-.allure-results
+allure-report/
+allure-results/
+.allure/
