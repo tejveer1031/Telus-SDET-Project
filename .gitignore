@@ -24,3 +24,7 @@ build/
 
 # OS metadata
 .DS_Store
+
+#Allure
+.allure-report
+.allure-results

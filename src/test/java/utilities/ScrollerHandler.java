@@ -1,71 +1,77 @@
 package utilities;
 
 import org.openqa.selenium.*;
-import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.text.Normalizer;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ScrollerHandler {
+    final JavascriptExecutor js; // Cast driver to javascriptExecutor
+    final By ITEM_CONTAINER = By.xpath("//div[@class='item-container']");
+    final By SUBTITLE_LOCATOR = By.xpath(".//p[@class='subtitle']");
     WebDriver driver;
-    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+    WebDriverWait wait;
+
 
     public ScrollerHandler(WebDriver driver) {
-        this.driver = driver;
+       this.driver = driver;
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        this.js = (JavascriptExecutor) driver;
     }
 
     public WebElement findElementWithSubtitle(String subtitle) {
-        JavascriptExecutor js = (JavascriptExecutor) driver; // Cast driver to javascriptExecutor
-        long lastHeight = (long) js.executeScript("return document.body.scrollHeight"); // fetch current height of document body
-        while (true) { //infinite loop
-            List<WebElement> items = driver.findElements(By.xpath("//div[@class='item-container']"));
-            for (WebElement item : items) {
-                try {
-                    WebElement subtitleElement = item.findElement(By.xpath(".//p[@class='subtitle']")); // we fetch subtitle from each div
-                    String subtitleText = subtitleElement.getText().trim();
-                    subtitleText = Normalizer.normalize(subtitleText, Normalizer.Form.NFKC); // convert char to standard form
 
-                    if (subtitleText.equalsIgnoreCase(subtitle) || subtitleText.contains(subtitle)) {
-                        return item;
-                    }
-                } catch (NoSuchElementException e) {
-                    continue;
+        // Preprocess search text once
+        final String normalizedSubtitle = Normalizer.normalize(subtitle.trim(), Normalizer.Form.NFKC).toLowerCase();
+
+        long lastHeight = findCurrentHeightOfWindow();
+
+
+        while (true) { //infinite loop
+
+
+            // Check current batch of items
+            for (WebElement item : driver.findElements(ITEM_CONTAINER)) {
+                final List<WebElement> subtitleElements = item.findElements(SUBTITLE_LOCATOR);
+
+                if (subtitleElements.isEmpty()) continue;
+                // Process element text
+                final String elementText = Normalizer.normalize(
+                        subtitleElements.get(0).getText().trim(),
+                        Normalizer.Form.NFKC
+                ).toLowerCase();
+
+                if (elementText.contains(normalizedSubtitle)) {
+                    return item;
                 }
             }
 
-            js.executeScript("window.scrollTo(0, document.body.scrollHeight);"); // scroll to bottom of page
-
-//            try {
-//                Thread.sleep(500);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-
+            scroolToBottom();
 
             try {
                 wait.until(new Scrollheighticreased(lastHeight, this.driver));
-                lastHeight = (long) js.executeScript("return document.body.scrollHeight");
+                lastHeight = findCurrentHeightOfWindow();
             } catch (TimeoutException e) {
-                long currentHeight = (long) js.executeScript("return document.body.scrollHeight"); // Fresh check
-                if (currentHeight == lastHeight) {
-                    break;
-                }
-                lastHeight = currentHeight; // Update if partial load
+                final long currentHeight = findCurrentHeightOfWindow();
+                if (currentHeight == lastHeight) break; // No more content
+                lastHeight = currentHeight;
             }
-
-//            long newHeight = (long) js.executeScript("return document.body.scrollHeight");
-//            if (newHeight == lastHeight) {
-//                break;
-//            }
-//            lastHeight = newHeight;
         }
         return null;
     }
+
+    private Long findCurrentHeightOfWindow() {
+        return (long) js.executeScript("return document.body.scrollHeight");
+
+    }
+
+    private void scroolToBottom() {
+        js.executeScript("window.scrollTo(0, document.body.scrollHeight);"); // scroll to bottom of page
+    }
+
 
 }
 

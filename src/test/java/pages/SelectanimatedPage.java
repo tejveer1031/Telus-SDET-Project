@@ -1,5 +1,6 @@
 package pages;
 
+import ENUM.Subtitle;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
@@ -122,7 +123,7 @@ public class SelectanimatedPage {
         public  void findRatedE(){
 
             ScrollerHandler scrollerHandler = new ScrollerHandler(driver);
-            WebElement returnElemt = scrollerHandler.findElementWithSubtitle("E");
+            WebElement returnElemt = scrollerHandler.findElementWithSubtitle(Subtitle.SUBTITLE.getText());
 
             if (returnElemt != null) {
                 try {
