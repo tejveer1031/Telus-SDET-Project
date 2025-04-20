@@ -21,15 +21,20 @@ public class DriverManager {
             String browser = browserName.get().toLowerCase();
             switch(browser) {
                 case "chrome":
-//                    ChromeOptions chromeOptions = new ChromeOptions();
-//                    chromeOptions.addArguments("--start-maximized");
-//                    driver.set(new ChromeDriver(chromeOptions));
-                    driver.set(new ChromeDriver());
+                    ChromeOptions options = new ChromeOptions();
+                    options.addArguments("--headless=new");
+                    options.addArguments("--disable-gpu");
+                    options.addArguments("--no-sandbox");
+                    options.addArguments("--remote-allow-origins=*");
+                    driver.set(new ChromeDriver(options));
                     break;
                 case "firefox":
-//                    FirefoxOptions firefoxOptions = new FirefoxOptions();
-//                    driver.set(new FirefoxDriver(firefoxOptions));
-                    driver.set(new FirefoxDriver());
+                    FirefoxOptions firefoxOptions = new FirefoxOptions();
+                    firefoxOptions.addArguments("--headless");
+                    firefoxOptions.addArguments("--disable-gpu");
+                    firefoxOptions.addArguments("--no-sandbox");
+                    firefoxOptions.addArguments("--remote-allow-origins=*");
+                    driver.set(new FirefoxDriver(firefoxOptions));
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported browser: " + browser);

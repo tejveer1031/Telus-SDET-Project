@@ -5,11 +5,33 @@ pipeline {
 		jdk 'jdk21'
         maven 'Maven3'
     }
+    environment {
+		DOCKER_IMAGE = "tejveer001/telus-sdet-project:latest"
+        ALLURE_RESULTS = "${WORKSPACE}/allure-results"
+    }
 
     stages {
 		stage('Checkout') {
 			steps {
 				checkout scm  // Pulls code from the configured SCM (GitHub)
+            }
+        }
+
+        stage('Docker Login') {
+			steps {
+				withCredentials([usernamePassword(
+                    credentialsId: 'docker-hub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+					sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
+                }
+            }
+        }
+
+ 		stage('Pull Docker Image') {
+			steps {
+				sh "docker pull ${DOCKER_IMAGE}"
             }
         }
 
@@ -41,6 +63,7 @@ pipeline {
 
     post {
 		always {
+			sh 'docker logout'
 			cleanWs()  // Clean workspace after all stages
         }
         success {

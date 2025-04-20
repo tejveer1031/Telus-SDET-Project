@@ -1,0 +1,8 @@
+target/
+.git/
+.gitignore
+*.iml
+.idea/
+.DS_Store
+allure-report/
+allure-results/
