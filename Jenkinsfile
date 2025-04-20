@@ -2,47 +2,55 @@ pipeline {
 	agent any
 
     tools {
-        jdk 'jdk21'
-        maven 'maven3'
+		jdk 'jdk_21_latest'
+        maven 'Maven 3 (latest)'
     }
 
     stages {
 		stage('Checkout') {
 			steps {
-				// Pull the code from GitHub
-                checkout scm
+				checkout scm  // Pulls code from the configured SCM (GitHub)
             }
         }
 
         stage('Build & Test') {
 			steps {
-				// Clean, compile, and run TestNG/Cucumber tests via testng.xml
-                sh 'mvn clean verify -DsuiteXmlFile=testng.xml'
+				sh 'mvn clean verify -DsuiteXmlFile=testng.xml'  // Run TestNG/Cucumber tests
             }
             post {
 				always {
-					// Publish test results (TestNG XML is JUnit-compatible)
-                    junit '**/target/surefire-reports/*.xml'
-                    // Generate Allure report from results directory
-                    allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
+					junit '**/target/surefire-reports/*.xml'   // Publish JUnit-compatible results
+                    allure(
+                        includeProperties: false,
+                        jdk: '',
+                        results: [[path: 'allure-results']]  // Raw Allure results directory
+                    )
                 }
+            }
+        }
+
+        // Add this stage to generate the HTML report
+        stage('Generate Allure Report') {
+			steps {
+				allure commandline: 'allure', generate: 'allure-results', report: 'allure-report'
             }
         }
 
         stage('Archive Artifacts') {
 			steps {
-				// Save the built JAR for downloads
-                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-                // Save the Allure HTML report as well
-                archiveArtifacts artifacts: 'allure-report/**/*.*', fingerprint: true
+				archiveArtifacts artifacts: 'target/*.jar', fingerprint: true  // Save JAR
+                archiveArtifacts artifacts: 'allure-report/**/*', fingerprint: true  // Save HTML report
             }
         }
     }
 
     post {
-		// Always clean up the workspace
-        always {
-			cleanWs()
+		always {
+			cleanWs()  // Clean workspace after all stages
+        }
+        success {
+			// Optional: Send notifications (Slack/Email)
+            slackSend channel: '#your-channel', message: "Build ${BUILD_URL} succeeded! 🚀"
         }
     }
 }
