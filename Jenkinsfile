@@ -17,22 +17,17 @@ pipeline {
 			steps {
 				bat 'mvn clean verify -DsuiteXmlFile=testng.xml'  // Run TestNG/Cucumber tests
             }
-            post {
-				always {
-					junit '**/target/surefire-reports/*.xml'   // Publish JUnit-compatible results
-                    allure(
-                        includeProperties: false,
-                        jdk: '',
-                        results: [[path: 'allure-results']]  // Raw Allure results directory
-                    )
-                }
-            }
         }
 
-        // Add this stage to generate the HTML report
-        stage('Generate Allure Report') {
+       stage('Allure Report') {
 			steps {
-				allure commandline: 'allure', generate: 'allure-results', report: 'allure-report'
+				allure([
+                    includeProperties: false,
+                    jdk: '',
+                    results: [[path: 'allure-results']],
+                    reportBuildPolicy: 'ALWAYS',
+                    commandline: 'allure'
+                ])
             }
         }
 

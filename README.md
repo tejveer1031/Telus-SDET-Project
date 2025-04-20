@@ -4,39 +4,33 @@
 [![Maven](https://img.shields.io/badge/Maven-3.8.6-blue.svg)](https://maven.apache.org)
 [![Selenium](https://img.shields.io/badge/Selenium-4.1.4-orange.svg)](https://selenium.dev)
 [![TestNG](https://img.shields.io/badge/TestNG-7.5-red.svg)](https://testng.org)
+[![Jenkins](https://img.shields.io/badge/Run_Remotely-Jenkins-blue?logo=jenkins)](http://your-ngrok-url.ngrok.io/job/Telus-SDET-Pipeline/build?token=YOUR_TOKEN)
 
-BDD test automation framework implementing Page Object Model (POM) with Java, Selenium, TestNG, and Cucumber.
+BDD test automation framework implementing **Page Object Model (POM)** with Java, Selenium, TestNG, and Cucumber.  
+CI/CD powered by Jenkins Multibranch Pipeline with automated reporting and remote execution.
 
-## 🚀 Project Overview
-- **Test Runner:** TestNG
-- **Reporting:** Cucumber HTML Reports
+
+## 🚀 Features
+- **Test Runner:** TestNG with parallel execution
+- **Reporting:** Allure + Cucumber HTML Reports
+- **CI/CD:** Automatic branch detection & builds
 - **Design Pattern:** Page Object Model (POM)
-- **CI/CD Ready:** Maven-based project structure
+- **Remote Execution:** One-click test triggering
 
 ## 🛠 Tech Stack
-- Java 21
-- Selenium WebDriver
-- TestNG
-- Cucumber BDD
-- Maven
+| Component       | Version                           |
+|-----------------|-----------------------------------|
+| Java            | 21                                |
+| Selenium        | 4.1.4                             |
+| TestNG          | 7.5                               |
+| Maven           | 3.8.6                             |
+| Jenkins         | 2.414 (with Ngrok tunneling)      |
+| Allure          | 2.24.0                            |
 
-## ⚙️ Setup
-1. Clone repository:
-   ```bash
-   git clone https://github.com/tejveer1031/telus-sdet-project.git
-   ```
-2. Install dependencies:
-   ```bash
-   mvn clean install
-   ```
+## ⚡ Quick Start
 
-## 🧪 Running Tests
+### 1. Run Locally
 ```bash
-mvn test
-```
-
-## 📊 Reporting
-HTML reports generated after test execution:
-```
-target/cucumber-reports/index.html
-```
+git clone https://github.com/tejveer1031/Telus-SDET-Project.git
+cd Telus-SDET-Project
+mvn clean test
