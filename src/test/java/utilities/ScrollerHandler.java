@@ -48,9 +48,7 @@ public class ScrollerHandler {
                     return item;
                 }
             }
-
             scroolToBottom();
-
             try {
                 wait.until(new Scrollheighticreased(lastHeight, this.driver));
                 lastHeight = findCurrentHeightOfWindow();
@@ -65,7 +63,6 @@ public class ScrollerHandler {
 
     private Long findCurrentHeightOfWindow() {
         return (long) js.executeScript("return document.body.scrollHeight");
-
     }
 
     private void scroolToBottom() {
