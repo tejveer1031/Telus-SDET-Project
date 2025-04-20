@@ -15,7 +15,7 @@ pipeline {
 
         stage('Build & Test') {
 			steps {
-				sh 'mvn clean verify -DsuiteXmlFile=testng.xml'  // Run TestNG/Cucumber tests
+				bat 'mvn clean verify -DsuiteXmlFile=testng.xml'  // Run TestNG/Cucumber tests
             }
             post {
 				always {
