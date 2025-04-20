@@ -21,7 +21,6 @@ public class TestRunner extends AbstractTestNGCucumberTests {
         @Parameters("browser")
         public void setup(String browser) {
                 DriverManager.setBrowser(browser);// Thread-safe browser setup
-                DriverManager.getDriver().manage().window().maximize();
         }
 
         @AfterClass

@@ -1,6 +1,21 @@
 # Use verified Maven image with JDK 21
 FROM maven:3.9.6-eclipse-temurin-21 AS builder
 
+# Install Git and SSH for private repos
+RUN apt-get update && apt-get install -y git openssh-client
+
+# Clone repository (replace with your GitHub URL)
+ARG GITHUB_REPO=https://github.com/tejveer1031/Telus-SDET-Project
+ARG BRANCH=main
+
+# Clone and build
+RUN git clone --branch ${BRANCH} ${GITHUB_REPO} . && \
+    mvn clean package -DskipTests
+
+# Copy built artifacts
+COPY --from=builder /app/target/*.jar /app/app.jar
+COPY --from=builder /app/testng.xml /app/
+
 # Install browsers with proper dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
