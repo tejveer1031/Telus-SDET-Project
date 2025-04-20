@@ -44,8 +44,18 @@ pipeline {
 			cleanWs()  // Clean workspace after all stages
         }
         success {
-			// Optional: Send notifications (Slack/Email)
-            slackSend channel: '#your-channel', message: "Build ${BUILD_URL} succeeded! 🚀"
+			emailext(
+                subject: "Passed: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                body: "Passed",
+                to: 'Tejihayer.92@gmail.com'
+            )
+        }
+        failure {
+			emailext(
+                subject: "❌ FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                body: "Check failed build: ${env.BUILD_URL}",
+                to: 'Tejihayer.92@gmail.com'
+            )
         }
     }
 }
