@@ -5,6 +5,7 @@ pipeline {
 		jdk 'jdk21'
         maven 'Maven3'
     }
+
     environment {
 		DOCKER_IMAGE = "tejveer001/telus-sdet-project:latest"
         ALLURE_RESULTS = "${WORKSPACE}/allure-results"
@@ -13,7 +14,7 @@ pipeline {
     stages {
 		stage('Checkout') {
 			steps {
-				checkout scm  // Pulls code from the configured SCM (GitHub)
+				checkout scm  // Pulls code from GitHub
             }
         }
 
@@ -29,7 +30,7 @@ pipeline {
             }
         }
 
- 		stage('Pull Docker Image') {
+        stage('Pull Docker Image') {
 			steps {
 				sh "docker pull ${DOCKER_IMAGE}"
             }
@@ -37,11 +38,12 @@ pipeline {
 
         stage('Build & Test') {
 			steps {
-				bat 'mvn clean verify -DsuiteXmlFile=testng.xml'  // Run TestNG/Cucumber tests
+				// Use `sh` for Linux agents or `bat` for Windows
+                sh 'mvn clean verify -DsuiteXmlFile=testng.xml'  // Replace `bat` with `sh` if not on Windows
             }
         }
 
-       stage('Allure Report') {
+        stage('Allure Report') {
 			steps {
 				allure([
                     includeProperties: false,
@@ -55,8 +57,8 @@ pipeline {
 
         stage('Archive Artifacts') {
 			steps {
-				archiveArtifacts artifacts: 'target/*.jar', fingerprint: true  // Save JAR
-                archiveArtifacts artifacts: 'allure-report/**/*', fingerprint: true  // Save HTML report
+				archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                archiveArtifacts artifacts: 'allure-report/**/*', fingerprint: true
             }
         }
     }
@@ -64,7 +66,7 @@ pipeline {
     post {
 		always {
 			sh 'docker logout'
-			cleanWs()  // Clean workspace after all stages
+            cleanWs()
         }
         success {
 			emailext(
