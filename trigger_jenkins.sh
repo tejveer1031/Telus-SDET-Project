@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Jenkins configuration
-JENKINS_URL="http://54.221.128.107:8080"
+JENKINS_URL="http://52.73.89.216:8080"
 JOB_NAME="Telus-SDET-Pipeline"
 JENKINS_USER="admin"
 API_TOKEN="11db5033b68ee8eec95a693118c0569d41"
