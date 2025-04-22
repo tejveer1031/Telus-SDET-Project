@@ -6,8 +6,33 @@
 [![Docker](https://img.shields.io/badge/Docker-24.0-%232496ED?logo=docker)](https://docker.com)
 [![Jenkins](https://img.shields.io/badge/Jenkins-2.414-%23D24939?logo=jenkins)](http://your-ngrok-url.ngrok.io/job/Telus-SDET-Pipeline/build?token=YOUR_TOKEN)
 
-**Enterprise-grade test automation framework** implementing Behavior-Driven Development (BDD) with Page Object Model design pattern. CI/CD pipeline enables seamless integration with cross-browser testing and comprehensive reporting.
 
+An enterprise-grade test automation framework implementing Behavior-Driven Development (BDD) with the Page Object Model design pattern. The CI/CD pipeline enables seamless integration with cross-browser testing and comprehensive reporting.
+
+---
+
+## ☁️ Cloud Deployment Architecture
+
+[![AWS EC2](https://img.shields.io/badge/AWS_EC2-Instance-%23FF9900?logo=amazon-aws)](https://aws.amazon.com)
+[![Dockerized CI/CD](https://img.shields.io/badge/Pipeline-100%25_Containerized-%232496ED?logo=docker)](https://docker.com)
+[![Jenkins](https://img.shields.io/badge/CI/CD-Jenkins-%23D24939?logo=jenkins)](http://your-jenkins-url:8080)
+
+### Infrastructure Highlights
+
+- **AWS EC2 Ubuntu Server**: Scalable t3.xlarge instance with automated snapshot backups.
+- **Docker Swarm**: Cluster management for parallel cross-browser test execution.
+- **Jenkins Pipeline**: Multibranch declarative pipelines with pipeline-as-code.
+- **Security**: IAM role-based access, VPC isolation, HTTPS via Let's Encrypt.
+
+```text
++-------------------+     +-----------------+     +---------------+
+|   GitHub Repo     |     | Jenkins (EC2)   |     | Docker Swarm  |
+|                   +----->                 +----->               |
+| Code Commit/PR    |     | - Build Trigger |     | - Chrome      |
++-------------------+     | - Test Execution|     | - Firefox     |
+                          | - Allure Reports|     | - Headless    |
+                          +-----------------+     +---------------+      
+```
 ## 🌟 Key Features
 - 🧩 **Modular Architecture**: Page Object Model with reusable components
 - ⚡ **Parallel Execution**: TestNG-powered multi-threaded runs (up to 4x faster)
@@ -38,3 +63,34 @@ Start Docker Desktop first (if using Windows/Mac).
 
 2. Run the Docker Image
 docker run -it --rm tejveer001/telus-sdet-project:latest
+
+```
+##Project Structure
+```
+telus-sdet-project/
+├── src/
+│   ├── test/
+│   │   └── java/
+│   │       └── com/telus/automation/
+│   │           ├── pages/             # Page Object Models
+│   │           ├── runners/           # Test Runners
+│   │           ├── enums/             # Enums for constants
+│   │           ├── hooks/             # Hooks for setup/teardown
+│   │           ├── tests/             # Test classes
+│   │           └── stepdefinitions/   # Cucumber Step Definitions
+│   └── resources/
+│       ├── features/                  # Cucumber Feature Files
+│       └── config.properties          # Configuration Properties
+├── reports/                           # Generated Test Reports
+├── pom.xml                            # Maven Configuration File
+├── Jenkinsfile                        # Jenkins Pipeline Configuration
+├── Dockerfile                         # Docker Configuration
+├── trigger_jenkins.sh                 # Script to trigger Jenkins builds
+└── README.md                          # Project Documentation
+```
+🤝 Contributing
+Contributions are welcome! Please fork the repository and submit a pull request for any enhancements or bug fixes.
+
+📞 Contact
+For any inquiries or support, please contact hayertejveersingh@gmail.com.
+
