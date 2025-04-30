@@ -88,8 +88,7 @@ telus-sdet-project/
 ├── trigger_jenkins.sh                 # Script to trigger Jenkins builds
 └── README.md                          # Project Documentation
 ```
-🤝 Contributing
-Contributions are welcome! Please fork the repository and submit a pull request for any enhancements or bug fixes.
+
 
 📞 Contact
 For any inquiries or support, please contact hayertejveersingh@gmail.com.
