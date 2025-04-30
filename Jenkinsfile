@@ -16,7 +16,15 @@ pipeline {
     stages {
 		stage('Checkout') {
 			steps {
-				checkout scm
+				checkout([
+                    $class: 'GitSCM',
+                    extensions: [[$class: 'CleanBeforeCheckout']],
+                    userRemoteConfigs: [[
+                        url: env.GITHUB_REPO,
+                        credentialsId: 'github-token' // Add GitHub credentials
+                    ]],
+                    branches: [[name: "*/${env.BRANCH}"]]
+                ])
             }
         }
 
@@ -28,15 +36,15 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
 					script {
-						// Build and run tests in container
+						// Build using local checked-out code
                         sh """
                             docker build \
-                                --build-arg GITHUB_REPO=${GITHUB_REPO} \
-                                --build-arg BRANCH=${BRANCH} \
-                                -t ${DOCKER_IMAGE} .
+                                -t ${DOCKER_IMAGE} \
+                                --build-arg WORKSPACE=${WORKSPACE} \
+                                .
 
                             docker run --rm \
-                                -v ${WORKSPACE}/allure-results:/app/target/allure-results \
+                                -v ${ALLURE_RESULTS}:/app/allure-results \
                                 ${DOCKER_IMAGE}
                         """
                     }
@@ -49,7 +57,7 @@ pipeline {
 				allure([
                     includeProperties: false,
                     jdk: '',
-                    results: [[path: 'target/allure-results']], // Match mounted volume
+                    results: [[path: "${ALLURE_RESULTS}"]], // Fixed path
                     reportBuildPolicy: 'ALWAYS',
                     commandline: 'allure'
                 ])
@@ -74,8 +82,12 @@ pipeline {
 
     post {
 		always {
-			sh 'docker logout'
-            cleanWs()
+			script {
+				// Cleanup Docker artifacts
+                sh 'docker logout || true'
+                sh 'docker system prune -f || true'
+                cleanWs()
+            }
         }
         success {
 			emailext(
