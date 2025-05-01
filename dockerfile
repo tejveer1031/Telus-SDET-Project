@@ -82,10 +82,13 @@ RUN find . -type f -exec file {} \; | grep -E "ASCII|UTF-8|text" | cut -d: -f1 |
 # Build application
 RUN mvn clean install -DskipTests
 
+RUN apt-get update && apt-get install -y xvfb
+
 # Xvfb configuration with healthcheck
 HEALTHCHECK --interval=5s --timeout=5s --retries=5 \
     CMD xdpyinfo -display :99 >/dev/null 2>&1
 
-CMD ["sh", "-c", "Xvfb :99 -screen 0 1920x1080x24 -ac >/dev/null 2>&1 && \
+CMD ["sh", "-c", "Xvfb :99 -screen 0 1920x1080x24 -ac >/dev/null 2>&1 & \
      export DISPLAY=:99 && \
+     sleep 2 && \
      mvn test"]
