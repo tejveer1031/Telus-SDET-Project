@@ -62,7 +62,7 @@ public class DriverManager {
                 "--enable-automation",
                 "--disable-component-update"
         );
-
+        options.setBinary("/usr/bin/google-chrome-stable");  // Explicit binary path
         options.setPageLoadStrategy(PageLoadStrategy.EAGER);
         return options;
     }
@@ -78,6 +78,7 @@ public class DriverManager {
                 "--no-sandbox",
                 "--disable-dev-shm-usage"
         );
+        options.setBinary("/usr/bin/firefox");
         options.addPreference("layers.acceleration.disabled", true);
         options.setAcceptInsecureCerts(true);
         return options;
