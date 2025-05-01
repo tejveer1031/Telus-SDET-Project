@@ -42,37 +42,44 @@ public class DriverManager {
         }
     }
 
+
     private static ChromeOptions getChromeOptions() {
         ChromeOptions options = new ChromeOptions();
         options.addArguments(
-                "--headless=new",               // use new headless implementation
-                "--window-size=1920,1080",
-                "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-                "--disable-gpu",
+                 "--headless=new", // Ensure this is commented
+                "--width=1920",
+                "--height=1080",
+                "--start-maximized",
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
-                "--remote-allow-origins=*"
+                "--force-device-scale-factor=1",
+                "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+                "--disable-browser-side-navigation",
+                "--disable-extensions",
+                "--disable-gpu-compositing",
+                // "--user-data-dir=C:\\Temp\\ChromeProfile", // Test without profile
+                "--disable-features=DialMediaRouteProvider",
+                "--enable-automation",
+                "--disable-component-update"
         );
+
+        options.setPageLoadStrategy(PageLoadStrategy.EAGER);
         return options;
     }
 
     private static FirefoxOptions getFirefoxOptions() {
         FirefoxOptions options = new FirefoxOptions();
-        // Correct headless arguments (use --headless instead of -headless)
         options.addArguments(
-                "--headless",
+                "-headless",
+                "--width=1920",
+                "--height=1080",
+                "--start-maximized",
                 "--disable-gpu",
                 "--no-sandbox",
-                "--disable-dev-shm-usage",
-                "--start-maximized"
+                "--disable-dev-shm-usage"
         );
-
-        // Set preferences properly
-        options.addPreference("dom.webnotifications.enabled", false);
-        options.addPreference("layout.css.devPixelsPerPx", "1.0");
-
-        // Set geckodriver path via system property (not as an argument)
-        System.setProperty("webdriver.gecko.driver", "/usr/local/bin/geckodriver");
+        options.addPreference("layers.acceleration.disabled", true);
+        options.setAcceptInsecureCerts(true);
         return options;
     }
 

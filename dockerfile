@@ -1,78 +1,91 @@
-# Use official Maven image with JDK 21
-FROM maven:3.9.6-eclipse-temurin-21 AS builder
+# Use Java 21 base image
+FROM eclipse-temurin:21-jdk-jammy
 
-# Set working directory
-WORKDIR /app
+# Set common environment variables
+ENV DISPLAY=:99 \
+    TZ=UTC \
+    CHROME_VERSION=123.0.6312.122 \
+    CHROME_DRIVER_VERSION=123.0.6312.122 \
+    GECKO_DRIVER_VERSION=0.34.0
 
-# Copy only essential build files first
-COPY pom.xml .
-COPY src ./src
-COPY testng.xml .
-
-# Install browsers and dependencies with proper Firefox setup
+# Install essential dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    wget \
-    gnupg \
-    software-properties-common && \
-    # Add Chrome repository
-    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/googlechrome-linux-keyring.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/googlechrome-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
-    # Add Firefox repository
-    add-apt-repository ppa:mozillateam/ppa -y && \
-    echo "Package: firefox*" > /etc/apt/preferences.d/mozilla-firefox && \
-    echo "Pin: release o=LP-PPA-mozillateam" >> /etc/apt/preferences.d/mozilla-firefox && \
-    echo "Pin-Priority: 1001" >> /etc/apt/preferences.d/mozilla-firefox && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-    google-chrome-stable \
-    firefox \
+    ca-certificates \
+    curl \
+    unzip \
     xvfb \
-    libgtk-3-0 \
-    libdbus-glib-1-2 \
-    libx11-xcb1 \
-    libxcomposite1 \
-    libxcursor1 \
-    libxdamage1 \
-    libxi6 \
-    libxtst6 \
-    libnss3 \
-    libcups2 \
+    libgconf-2-4 \
     libxss1 \
-    libxrandr2 \
     libasound2 \
-    libatk1.0-0 \
-    libatk-bridge2.0-0 \
-    libpangocairo-1.0-0 \
     libgbm1 \
-    dbus && \
-    # Install geckodriver
-    wget https://github.com/mozilla/geckodriver/releases/download/v0.34.0/geckodriver-v0.34.0-linux64.tar.gz && \
-    tar -zxvf geckodriver-*.tar.gz && \
-    mv geckodriver /usr/local/bin/ && \
-    chmod +x /usr/local/bin/geckodriver && \
-    rm geckodriver-*.tar.gz && \
-    # Cleanup
+    libpangocairo-1.0-0 \
+    fonts-liberation \
+    xdg-utils \
+    procps \
+    gnupg2 \
+    software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Chrome
+RUN curl -sSL https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+    -o /tmp/chrome.deb && \
+    apt-get update && \
+    apt-get install -y /tmp/chrome.deb && \
+    rm -rf /tmp/* /var/lib/apt/lists/*
+
+# Install Firefox from Mozilla PPA (avoid snap)
+RUN add-apt-repository -y ppa:mozillateam/ppa && \
+    echo 'Package: firefox*' > /etc/apt/preferences.d/mozilla-firefox && \
+    echo 'Pin: release o=LP-PPA-mozillateam' >> /etc/apt/preferences.d/mozilla-firefox && \
+    echo 'Pin-Priority: 1001' >> /etc/apt/preferences.d/mozilla-firefox && \
+    apt-get update && \
+    apt-get install -y firefox && \
     rm -rf /var/lib/apt/lists/*
 
+# Install Drivers
+RUN mkdir -p /usr/local/bin && \
+    # ChromeDriver
+    curl -sSL https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/${CHROME_DRIVER_VERSION}/linux64/chromedriver-linux64.zip \
+    -o /tmp/chromedriver.zip && \
+    unzip -o /tmp/chromedriver.zip -d /tmp/ && \
+    mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/ && \
+    # Geckodriver
+    curl -sSL https://github.com/mozilla/geckodriver/releases/download/v${GECKO_DRIVER_VERSION}/geckodriver-v${GECKO_DRIVER_VERSION}-linux64.tar.gz \
+    -o /tmp/geckodriver.tar.gz && \
+    tar -xzf /tmp/geckodriver.tar.gz -C /usr/local/bin/ && \
+    # Cleanup and permissions
+    rm -rf /tmp/* && \
+    chmod 755 /usr/local/bin/chromedriver /usr/local/bin/geckodriver && \
+    # Verify installations
+    google-chrome --version && \
+    chromedriver --version && \
+    /usr/lib/firefox/firefox --version && \
+    geckodriver --version
 
-# Resolve dependencies (layer caching optimization)
-RUN mvn dependency:resolve
+# Install Maven
+ARG MAVEN_VERSION=3.9.6
+RUN mkdir -p /usr/share/maven && \
+    curl -fsSL -o /tmp/maven.tar.gz \
+    https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz && \
+    tar -xzf /tmp/maven.tar.gz -C /usr/share/maven --strip-components=1 && \
+    ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
 
-# Copy remaining source code
-COPY . .
+# Configure workspace
+WORKDIR /app
+COPY . /app
 
-# Install Allure and configure test execution
-RUN mkdir -p target/allure-results && \
-    curl -o allure-2.24.1.tgz -Ls https://github.com/allure-framework/allure2/releases/download/2.24.1/allure-2.24.1.tgz && \
-    tar -zxvf allure-2.24.1.tgz -C /opt/ && \
-    ln -s /opt/allure-2.24.1/bin/allure /usr/bin/allure && \
-    rm allure-2.24.1.tgz
+# Safe line ending conversion
+RUN find . -type f -exec file {} \; | grep -E "ASCII|UTF-8|text" | cut -d: -f1 | xargs -d'\n' dos2unix && \
+    [ -f "mvnw" ] && chmod +x mvnw || true
 
-# Test execution with Xvfb and Allure reporting
-CMD sh -c "Xvfb :99 -screen 0 1920x1080x24 & \
-           export DISPLAY=:99 && \
-           mvn clean verify -DsuiteXmlFile=testng.xml \
-           -Dwebdriver.gecko.driver=/usr/local/bin/geckodriver \
-           -Dselenium.browser=firefox && \
-           allure generate target/allure-results -o target/allure-report --clean"
+# Build application
+RUN mvn clean install -DskipTests
+
+# Xvfb configuration with healthcheck
+HEALTHCHECK --interval=5s --timeout=5s --retries=5 \
+    CMD xdpyinfo -display :99 >/dev/null 2>&1
+
+CMD ["sh", "-c", "Xvfb :99 -screen 0 1920x1080x24 -ac >/dev/null 2>&1 && \
+     export DISPLAY=:99 && \
+     mvn test"]

@@ -8,6 +8,8 @@ import pages.HomePage;
 import utilities.ConfigReader;
 import utilities.DriverManager;
 
+import java.io.IOException;
+
 public class PopupSteps {
     private HomePage homePage;
 
@@ -18,7 +20,7 @@ public class PopupSteps {
     }
 
     @When("I close the welcome pop-up")
-    public void closePopup() {
+    public void closePopup() throws IOException {
         homePage.closeWelcomePopup();
     }
 
