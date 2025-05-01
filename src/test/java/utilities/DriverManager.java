@@ -58,13 +58,21 @@ public class DriverManager {
 
     private static FirefoxOptions getFirefoxOptions() {
         FirefoxOptions options = new FirefoxOptions();
+        // Correct headless arguments (use --headless instead of -headless)
         options.addArguments(
-                "-headless",
-                "--width=1920",
-                "--height=1080"
+                "--headless",
+                "--disable-gpu",
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--start-maximized"
         );
-        options.addPreference("layout.css.devPixelsPerPx", "1.0");
+
+        // Set preferences properly
         options.addPreference("dom.webnotifications.enabled", false);
+        options.addPreference("layout.css.devPixelsPerPx", "1.0");
+
+        // Set geckodriver path via system property (not as an argument)
+        System.setProperty("webdriver.gecko.driver", "/usr/local/bin/geckodriver");
         return options;
     }
 
