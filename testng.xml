@@ -1,11 +1,17 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 <suite name="Parallel Browser Suite" parallel="tests" thread-count="2">
-<!--    <test name="Chrome Tests">-->
-<!--        <parameter name="browser" value="chrome"/>-->
-<!--        <classes>-->
-<!--            <class name="runners.TestRunner"/>-->
-<!--        </classes>-->
-<!--    </test>-->
+    <!-- Allure Listener added at suite level -->
+    <listeners>
+        <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+    </listeners>
+
+    <test name="Chrome Tests">
+        <parameter name="browser" value="chrome"/>
+        <classes>
+            <class name="runners.TestRunner"/>
+        </classes>
+    </test>
+
     <test name="Firefox Tests">
         <parameter name="browser" value="firefox"/>
         <classes>

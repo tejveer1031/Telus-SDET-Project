@@ -51,7 +51,9 @@ public class SelectanimatedPage {
 
 
     public void clickOnDemandMovies() {
-        wait.until(ExpectedConditions.elementToBeClickable(onDemand)).click();
+        WebElement element = wait.until(ExpectedConditions.elementToBeClickable(onDemand));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", element);
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
     }
 
 

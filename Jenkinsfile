@@ -1,5 +1,10 @@
 pipeline {
-	agent any
+	agent {
+		docker {
+			image 'docker:dind'
+            args '-v /var/run/docker.sock:/var/run/docker.sock --privileged'
+        }
+    }
 
     tools {
 		jdk 'jdk21'
@@ -9,8 +14,7 @@ pipeline {
     environment {
 		DOCKER_IMAGE = "tejveer001/telus-sdet-project:latest"
         ALLURE_RESULTS = "${WORKSPACE}/allure-results"
-        GITHUB_REPO = "https://github.com/tejveer1031/Telus-SDET-Project"
-        BRANCH = "main"
+        DOCKER_BUILDKIT = "1"  // Enable Docker BuildKit
     }
 
     stages {
@@ -20,15 +24,15 @@ pipeline {
                     $class: 'GitSCM',
                     extensions: [[$class: 'CleanBeforeCheckout']],
                     userRemoteConfigs: [[
-                        url: env.GITHUB_REPO,
-                        credentialsId: 'github-token' // Add GitHub credentials
+                        url: 'https://github.com/tejveer1031/Telus-SDET-Project',
+                        credentialsId: 'github-token'
                     ]],
-                    branches: [[name: "*/${env.BRANCH}"]]
+                    branches: [[name: '*/main']]
                 ])
             }
         }
 
-        stage('Docker Build & Run') {
+        stage('Docker Build & Test') {
 			steps {
 				withCredentials([usernamePassword(
                     credentialsId: 'docker-hub-creds',
@@ -36,15 +40,15 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
 					script {
-						// Build using local checked-out code
-                        sh """
+						sh """
                             docker build \
-                                -t ${DOCKER_IMAGE} \
-                                --build-arg WORKSPACE=${WORKSPACE} \
-                                .
+                                --progress=plain \
+                                --build-arg MAVEN_OPTS="-Dmaven.repo.local=${WORKSPACE}/.m2/repository" \
+                                -t ${DOCKER_IMAGE} .
 
                             docker run --rm \
-                                -v ${ALLURE_RESULTS}:/app/allure-results \
+                                -v ${ALLURE_RESULTS}:/app/target/allure-results \
+                                -v ${WORKSPACE}/.m2:/root/.m2 \
                                 ${DOCKER_IMAGE}
                         """
                     }
@@ -57,16 +61,17 @@ pipeline {
 				allure([
                     includeProperties: false,
                     jdk: '',
-                    results: [[path: "${ALLURE_RESULTS}"]], // Fixed path
+                    results: [[path: "${ALLURE_RESULTS}"]],
                     reportBuildPolicy: 'ALWAYS',
                     commandline: 'allure'
                 ])
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Push Image') {
 			when {
 				branch 'main'
+                beforeAgent true
             }
             steps {
 				withCredentials([usernamePassword(
@@ -74,7 +79,10 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-					sh "docker push ${DOCKER_IMAGE}"
+					sh """
+                        docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
+                        docker push ${DOCKER_IMAGE}
+                    """
                 }
             }
         }
@@ -83,27 +91,28 @@ pipeline {
     post {
 		always {
 			script {
-				// Cleanup Docker artifacts
-                sh 'docker logout || true'
-                sh 'docker system prune -f || true'
+				sh 'docker logout || true'
+                sh 'docker system prune --volumes --force || true'
                 cleanWs()
             }
         }
         success {
 			emailext(
-                subject: "✅ PASSED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                subject: "✅ SUCCESS: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
                 body: """|Allure Report: ${env.BUILD_URL}allure/
                          |Build URL: ${env.BUILD_URL}""".stripMargin(),
-                to: 'Tejihayer.92@gmail.com'
+                to: 'Tejihayer.92@gmail.com',
+                attachLog: true
             )
         }
         failure {
 			emailext(
-                subject: "❌ FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                subject: "❌ FAILURE: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
                 body: """|Allure Report: ${env.BUILD_URL}allure/
-                         |Build URL: ${env.BUILD_URL}
-                         |Console Output: ${env.BUILD_URL}console""".stripMargin(),
-                to: 'Tejihayer.92@gmail.com'
+                         |Console Output: ${env.BUILD_URL}console
+                         |Build URL: ${env.BUILD_URL}""".stripMargin(),
+                to: 'Tejihayer.92@gmail.com',
+                attachLog: true
             )
         }
     }
