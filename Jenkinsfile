@@ -1,8 +1,8 @@
 pipeline {
 	agent {
 		docker {
-			image 'docker:dind'
-            args '--privileged -v /var/run/docker.sock:/var/run/docker.sock -u 0:0' // Run as root to bypass permission issues
+			image 'maven:3.9.6-eclipse-temurin-21'
+            args '-v /var/run/docker.sock:/var/run/docker.sock -u root --memory=1g --cpus=0.8'
         }
     }
 
@@ -14,7 +14,7 @@ pipeline {
     environment {
 		DOCKER_IMAGE = "tejveer001/telus-sdet-project:latest"
         ALLURE_RESULTS = "${WORKSPACE}/allure-results"
-        DOCKER_BUILDKIT = "1"  // Enable Docker BuildKit
+        MAVEN_OPTS = "-Dmaven.repo.local=${WORKSPACE}/.m2/repository -Xmx512m -XX:+UseContainerSupport"
     }
 
     stages {
@@ -32,26 +32,37 @@ pipeline {
             }
         }
 
-        stage('Docker Build & Test') {
+        stage('Build & Test') {
+			steps {
+				script {
+					sh """
+                        mvn clean test \
+                            -Dmaven.test.failure.ignore=true \
+                            -Dallure.results.directory=${ALLURE_RESULTS}
+                    """
+                }
+            }
+            post {
+				always {
+					archiveArtifacts artifacts: '**/target/surefire-reports/**/*', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Docker Build') {
 			steps {
 				withCredentials([usernamePassword(
                     credentialsId: 'docker-hub-creds',
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-					script {
-						sh """
-                            docker build \
-                                --progress=plain \
-                                --build-arg MAVEN_OPTS="-Dmaven.repo.local=${WORKSPACE}/.m2/repository" \
-                                -t ${DOCKER_IMAGE} .
-
-                            docker run --rm \
-                                -v ${ALLURE_RESULTS}:/app/target/allure-results \
-                                -v ${WORKSPACE}/.m2:/root/.m2 \
-                                ${DOCKER_IMAGE}
-                        """
-                    }
+					sh """
+                        docker build \
+                            --no-cache \
+                            --memory=1g \
+                            --cpus=0.8 \
+                            -t ${DOCKER_IMAGE} .
+                    """
                 }
             }
         }
@@ -92,7 +103,7 @@ pipeline {
 		always {
 			script {
 				sh 'docker logout || true'
-                sh 'docker system prune --volumes --force || true'
+                sh 'docker system prune -af --volumes || true'
                 cleanWs()
             }
         }
