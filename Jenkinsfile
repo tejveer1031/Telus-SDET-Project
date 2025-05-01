@@ -2,7 +2,7 @@ pipeline {
 	agent {
 		docker {
 			image 'docker:dind'
-            args '-v /var/run/docker.sock:/var/run/docker.sock --privileged'
+            args '--privileged -v /var/run/docker.sock:/var/run/docker.sock -u 0:0' // Run as root to bypass permission issues
         }
     }
 
